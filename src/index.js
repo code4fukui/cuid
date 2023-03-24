@@ -1,5 +1,13 @@
 /* global global, window, module */
-const { sha3_512: sha3 } = require("@noble/hashes/sha3");
+//const { sha3_512: sha3 } = require("@noble/hashes/sha3");
+import { SHA3 } from "https://code4fukui.github.io/SHA3/SHA3.js";
+import { Base16 } from "https://code4fukui.github.io/Base16/Base16.js";
+
+const sha3 = (bin) => {
+  const s = SHA3.sha3_512(bin);
+  const res = Base16.decode(s);
+  return res;
+};
 
 const defaultLength = 24;
 const bigLength = 32;
@@ -17,11 +25,11 @@ const createEntropy = (length = 4, random = Math.random) => {
  * Adapted from https://github.com/juanelas/bigint-conversion
  * MIT License Copyright (c) 2018 Juan Hernández Serrano
  */
-function bufToBigInt(buf) {
+export function bufToBigInt(buf) {
   let bits = 8n;
 
   let value = 0n;
-  for (const i of buf.values()) {
+  for (const i of buf) { // }.values()) {
     const bi = BigInt(i);
     value = (value << bits) + bi;
   }
@@ -47,7 +55,7 @@ prevent collisions when generating ids in a distributed system.
 If no global object is available, you can pass in your own, or fall back
 on a random string.
 */
-const createFingerprint = ({
+export const createFingerprint = ({
   globalObj = typeof global !== "undefined"
     ? global
     : typeof window !== "undefined"
@@ -63,7 +71,7 @@ const createFingerprint = ({
   return hash(sourceString).substring(0, bigLength);
 };
 
-const createCounter = (count) => () => {
+export const createCounter = (count) => () => {
   return count++;
 };
 
@@ -71,7 +79,7 @@ const createCounter = (count) => () => {
 // with a remaining counter range of 9.0e+15 in JavaScript.
 const initialCountMax = 476782367;
 
-const init = ({
+export const init = ({
   // Fallback if the user does not pass in a CSPRNG. This should be OK
   // because we don't rely solely on the random number generator for entropy.
   // We also use the host fingerprint, current time, and a session counter.
@@ -98,9 +106,9 @@ const init = ({
   };
 };
 
-const createId = init();
+export const createId = init();
 
-const isCuid = (id, { minLength = 2, maxLength = bigLength } = {}) => {
+export const isCuid = (id, { minLength = 2, maxLength = bigLength } = {}) => {
   const length = id.length;
   const regex = /^[0-9a-z]+$/;
 
@@ -118,10 +126,4 @@ const isCuid = (id, { minLength = 2, maxLength = bigLength } = {}) => {
   return false;
 };
 
-module.exports.getConstants = () => ({ defaultLength, bigLength });
-module.exports.init = init;
-module.exports.createId = createId;
-module.exports.bufToBigInt = bufToBigInt;
-module.exports.createCounter = createCounter;
-module.exports.createFingerprint = createFingerprint;
-module.exports.isCuid = isCuid;
+export const getConstants = () => ({ defaultLength, bigLength });
